@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Catch the Falling Squares Game</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="game-header">
+      <h1>Catch the Falling Squares</h1>
+      <p>Use ← and → arrow keys to move the paddle</p>
+    </header>
+
+    <canvas id="game" width="450" height="600"></canvas>
+    <canvas id="backgroundCanvas"></canvas>
+
+    <div id="gameOverContainer" class="game-over-container" style="display: none;">
+      <div id="gameOverText">
+        GAME OVER!<br />
+        Catch the squares next time!<br /><br />
+        Score: <span id="finalScore">0</span>
+      </div>
+      <button id="restartBtn">Restart Game</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

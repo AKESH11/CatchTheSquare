@@ -1,0 +1,180 @@
+/* General resets */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body, html {
+  height: 100%;
+  background: linear-gradient(135deg, #0a0025, #1c0044, #2a005a, #3d0080);
+  font-family: 'Press Start 2P', cursive, monospace;
+  color: #ff66ff;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Dark translucent overlay behind everything */
+.container::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 0, 30, 0.65);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Container centers everything */
+.container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  z-index: 2;
+}
+
+/* Header with neon glow and translucent background for readability */
+.game-header {
+  text-align: center;
+  margin-bottom: 30px;
+  position: relative;
+  z-index: 2;
+  padding: 12px 20px;
+  background-color: rgba(30, 0, 60, 0.4);
+  border-radius: 12px;
+  box-shadow:
+    0 0 30px #ff66ffaa,
+    inset 0 0 60px #cc33cc99;
+  animation: neonPulse 3s ease-in-out infinite alternate;
+  user-select: none;
+}
+
+.game-header h1 {
+  font-size: 2.8rem;
+  margin-bottom: 10px;
+  color: #ff66ff;
+  text-shadow:
+    0 0 10px #ff66ff,
+    0 0 20px #ff44cc,
+    0 0 40px #cc33cc;
+}
+
+.game-header p {
+  font-size: 1.1rem;
+  color: #f0a0ffcc;
+  letter-spacing: 2px;
+  text-shadow:
+    0 0 6px #ff66ccaa,
+    0 0 12px #cc33cc88;
+}
+
+/* Canvas styles */
+canvas#game {
+  border: 4px solid #cc33cc;
+  border-radius: 16px;
+  box-shadow:
+    0 0 30px #ff44cc,
+    inset 0 0 40px #cc33cc;
+  background: #120022;
+  max-width: 90vw;
+  height: auto;
+  aspect-ratio: 3 / 4;
+  display: block;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 2;
+}
+
+/* Background canvas covers full screen */
+canvas#backgroundCanvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+  background: transparent;
+}
+
+/* Game Over modal */
+.game-over-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(40, 10, 60, 0.95);
+  border-radius: 18px;
+  border: 3px solid #ff33cc;
+  padding: 40px 50px;
+  box-shadow:
+    0 0 40px #ff33cc,
+    inset 0 0 60px #cc00ff;
+  text-align: center;
+  color: #ff99ee;
+  font-weight: 900;
+  font-size: 22px;
+  line-height: 1.5;
+  user-select: none;
+  display: none; /* toggle with JS */
+  z-index: 10;
+  animation: fadeInScale 0.6s ease forwards;
+}
+
+/* Restart button with neon pulse */
+#restartBtn {
+  margin-top: 25px;
+  padding: 16px 40px;
+  border-radius: 50px;
+  font-size: 18px;
+  font-weight: 700;
+  background: linear-gradient(45deg, #ff44cc, #ff0099);
+  border: none;
+  color: white;
+  cursor: pointer;
+  box-shadow:
+    0 0 30px #ff44cc,
+    0 0 60px #ff00aa inset;
+  user-select: none;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  filter: drop-shadow(0 0 8px #ff44cc);
+  position: relative;
+  z-index: 2;
+}
+
+#restartBtn:hover {
+  background: linear-gradient(45deg, #ff0099, #ff33cc);
+  transform: scale(1.05);
+  box-shadow:
+    0 0 40px #ff66dd,
+    0 0 80px #ff33cc inset;
+}
+
+/* Animations */
+@keyframes neonPulse {
+  from {
+    text-shadow:
+      0 0 8px #ff44cc,
+      0 0 20px #ff00cc,
+      0 0 30px #cc00ff;
+  }
+  to {
+    text-shadow:
+      0 0 12px #ff77ee,
+      0 0 25px #ff55dd,
+      0 0 45px #ff33cc;
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
