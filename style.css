@@ -84,7 +84,7 @@ canvas#game {
   height: auto;
   aspect-ratio: 3 / 4;
   display: block;
-  margin-bottom: 20px;
+  /* margin-bottom is removed as mobile controls handle spacing */
   position: relative;
   z-index: 2;
 }
@@ -176,5 +176,51 @@ canvas#backgroundCanvas {
   to {
     opacity: 1;
     transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* --- NEW: Mobile Controls Styling --- */
+#mobile-controls {
+  display: none; /* Hidden by default */
+  justify-content: space-between;
+  width: 100%;
+  max-width: 90vw; /* Match the canvas width */
+  margin-top: 20px;
+  position: relative;
+  z-index: 5;
+}
+
+.control-btn {
+  width: 48%;
+  padding: 20px 0;
+  font-size: 2.5rem; /* Large font for easy tapping */
+  font-family: 'Press Start 2P', cursive;
+  color: #ff99ee;
+  background: rgba(40, 10, 60, 0.8);
+  border: 3px solid #ff33cc;
+  border-radius: 12px;
+  cursor: pointer;
+  user-select: none; /* Prevents text selection on long press */
+  box-shadow: 0 0 20px #ff33cc;
+  -webkit-tap-highlight-color: transparent; /* Removes blue tap highlight on mobile */
+  transition: all 0.2s ease;
+}
+
+.control-btn:active {
+  transform: scale(0.95);
+  background: rgba(80, 20, 120, 0.9);
+  box-shadow: 0 0 30px #ff66dd;
+}
+
+/* Media query to show controls only on touch devices or small screens */
+@media (pointer: coarse), (max-width: 768px) {
+  #mobile-controls {
+    display: flex;
+  }
+  .game-header p {
+     display: none; /* Hide the keyboard instructions on mobile */
+  }
+  .game-header h1 {
+      font-size: 2rem; /* Slightly smaller title on mobile */
   }
 }
