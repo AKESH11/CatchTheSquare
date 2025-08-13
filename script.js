@@ -12,7 +12,6 @@ gameOverSound.volume = 0.6;
 const clickSound = new Audio('audio/click.wav');
 clickSound.volume = 0.5;
 
-
 // --- Background Canvas Setup ---
 const bgCanvas = document.getElementById('backgroundCanvas');
 const bgCtx = bgCanvas.getContext('2d');
@@ -24,6 +23,7 @@ function resizeBG() {
 window.addEventListener('resize', resizeBG);
 resizeBG();
 
+// ... (The entire background animation code remains the same) ...
 const starCount = 120;
 const stars = [];
 
@@ -49,11 +49,9 @@ function drawBackground() {
 
   bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
 
-  // Update background hue for color cycling
   bgHue += 0.8;
   if (bgHue > 360) bgHue = 290;
 
-  // Draw stars with flickering effect
   stars.forEach(star => {
     star.alpha += star.flickerSpeed * star.flickerDir;
     if (star.alpha >= 1) star.flickerDir = -1;
@@ -65,7 +63,6 @@ function drawBackground() {
     bgCtx.fill();
   });
 
-  // Draw glowing grid lines
   bgCtx.lineWidth = 1.7;
   bgCtx.shadowColor = `hsl(${bgHue}, 100%, 80%)`;
   bgCtx.shadowBlur = 10;
@@ -86,23 +83,26 @@ function drawBackground() {
 
   bgCtx.shadowBlur = 0;
 
-  // Animate grid offset for movement
   gridOffset -= gridSpeed;
   if (gridOffset <= 0) gridOffset = gridSpacing;
 }
 
+
 // --- Game Canvas Setup ---
 const gameCanvas = document.getElementById('game');
 const ctx = gameCanvas.getContext('2d');
+// NEW: Selectors for mobile buttons
+const leftBtn = document.getElementById('leftBtn');
+const rightBtn = document.getElementById('rightBtn');
 
 // Paddle Object
 const paddle = {
-  width: 90,
-  height: 28,
-  x: gameCanvas.width / 2 - 45,
-  y: gameCanvas.height - 50,
+  width: 90, // Will be set dynamically
+  height: 28, // Will be set dynamically
+  x: 0,
+  y: 0,
   speed: 0,
-  maxSpeed: 9,
+  maxSpeed: 9, // Will be set dynamically
   acceleration: 0.8,
   deceleration: 0.92,
   movingLeft: false,
@@ -113,49 +113,49 @@ const paddle = {
 
 // Square Class
 class Square {
-  constructor(x, speed) {
-    this.x = x;
-    this.y = 0;
-    this.size = 24;
-    this.rotation = 0;
-    this.rotationSpeed = (Math.random() * 0.12) - 0.06;
-    this.glowPulse = 0;
-    this.glowDirection = 1;
-    this.speed = speed;
+    constructor(x, speed) {
+      this.x = x;
+      this.y = -50; // Start off-screen
+      this.size = gameCanvas.width * 0.08; // CHANGED: Slightly larger for better visibility
+      this.rotation = 0;
+      this.rotationSpeed = (Math.random() * 0.12) - 0.06;
+      this.glowPulse = 0;
+      this.glowDirection = 1;
+      this.speed = speed;
+    }
+  
+    update() {
+      this.y += this.speed;
+      this.rotation += this.rotationSpeed;
+      this.glowPulse += 0.06 * this.glowDirection;
+      if (this.glowPulse > 1) this.glowDirection = -1;
+      else if (this.glowPulse < 0) this.glowDirection = 1;
+    }
+  
+    draw() {
+      ctx.save();
+      ctx.translate(this.x + this.size / 2, this.y + this.size / 2);
+      ctx.rotate(this.rotation);
+      const glowAlpha = 0.65 + 0.35 * this.glowPulse;
+      ctx.shadowColor = `rgba(255, 100, 255, ${glowAlpha.toFixed(2)})`;
+      ctx.shadowBlur = 22;
+      ctx.fillStyle = '#ff44cc';
+      ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+      ctx.restore();
+    }
   }
-
-  update() {
-    this.y += this.speed;
-    this.rotation += this.rotationSpeed;
-    this.glowPulse += 0.06 * this.glowDirection;
-    if (this.glowPulse > 1) this.glowDirection = -1;
-    else if (this.glowPulse < 0) this.glowDirection = 1;
-  }
-
-  draw() {
-    ctx.save();
-    ctx.translate(this.x + this.size / 2, this.y + this.size / 2);
-    ctx.rotate(this.rotation);
-    const glowAlpha = 0.65 + 0.35 * this.glowPulse;
-    ctx.shadowColor = `rgba(255, 100, 255, ${glowAlpha.toFixed(2)})`;
-    ctx.shadowBlur = 22;
-    ctx.fillStyle = '#ff44cc';
-    ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
-    ctx.restore();
-  }
-}
 
 // Game variables
 let squares = [];
 let score = 0;
-let squareSpeed = 4;
 let missed = 0;
 const maxMissed = 1;
 let currentMilestone = 0;
+let squareSpeed = 4; // Will be set dynamically
 
 // Timer variables
 let startTime = null;
-let elapsedTime = 0; // in seconds
+let elapsedTime = 0;
 
 // --- Input Handling ---
 document.addEventListener('keydown', e => {
@@ -171,6 +171,36 @@ document.addEventListener('keyup', e => {
   else if (e.key === 'ArrowRight') paddle.movingRight = false;
 });
 
+// NEW: Mobile Input Handling
+function handleControlStart(e, direction) {
+  e.preventDefault(); // Prevents screen scrolling on touch
+  if (direction === 'left') {
+    paddle.movingLeft = true;
+  } else if (direction === 'right') {
+    paddle.movingRight = true;
+  }
+}
+
+function handleControlEnd(e, direction) {
+  e.preventDefault();
+  paddle.movingLeft = false;
+  paddle.movingRight = false;
+}
+
+// Listen for both touch and mouse events for robustness
+leftBtn.addEventListener('touchstart', (e) => handleControlStart(e, 'left'), { passive: false });
+leftBtn.addEventListener('touchend', (e) => handleControlEnd(e, 'left'));
+leftBtn.addEventListener('mousedown', (e) => handleControlStart(e, 'left'));
+leftBtn.addEventListener('mouseup', (e) => handleControlEnd(e, 'left'));
+leftBtn.addEventListener('mouseleave', (e) => handleControlEnd(e, 'left')); // Handle mouse leaving button
+
+rightBtn.addEventListener('touchstart', (e) => handleControlStart(e, 'right'), { passive: false });
+rightBtn.addEventListener('touchend', (e) => handleControlEnd(e, 'right'));
+rightBtn.addEventListener('mousedown', (e) => handleControlStart(e, 'right'));
+rightBtn.addEventListener('mouseup', (e) => handleControlEnd(e, 'right'));
+rightBtn.addEventListener('mouseleave', (e) => handleControlEnd(e, 'right'));
+
+
 // --- Paddle Movement ---
 function movePaddle() {
   if (paddle.movingLeft && !paddle.movingRight) {
@@ -185,8 +215,11 @@ function movePaddle() {
   paddle.speed = Math.max(-paddle.maxSpeed, Math.min(paddle.speed, paddle.maxSpeed));
   paddle.x += paddle.speed;
 
-  // Boundaries
-  paddle.x = Math.min(Math.max(paddle.x, 0), gameCanvas.width - paddle.width);
+  // Prevent paddle from going off-screen
+  if (paddle.x < 0) paddle.x = 0;
+  if (paddle.x + paddle.width > gameCanvas.width) {
+    paddle.x = gameCanvas.width - paddle.width;
+  }
 }
 
 // --- Paddle Drawing ---
@@ -203,7 +236,7 @@ function drawPaddle() {
 
 // --- Squares Management ---
 function createSquare() {
-  const x = Math.random() * (gameCanvas.width - 24);
+  const x = Math.random() * (gameCanvas.width - gameCanvas.width * 0.08); // Use new responsive size
   squares.push(new Square(x, squareSpeed));
 }
 
@@ -212,7 +245,6 @@ function updateSquares() {
     const square = squares[i];
     square.update();
 
-    // Collision detection with paddle
     const hit =
       square.y + square.size > paddle.y &&
       square.x + square.size > paddle.x &&
@@ -220,19 +252,15 @@ function updateSquares() {
       square.y < paddle.y + paddle.height;
 
     if (hit) {
-      // Play catch sound
       catchSound.currentTime = 0;
       catchSound.play();
-
       squares.splice(i, 1);
       score += 5;
 
-      // Speed up squares every 50 points
-      if (score >= (currentMilestone + 1) * 50) {
-        squareSpeed *= 1.3;
+      if (score > 0 && score % 50 === 0) {
+        squareSpeed *= 1.2;
         currentMilestone++;
       }
-
       paddle.bounceVelocity = 0.18;
     } else if (square.y > gameCanvas.height) {
       missed++;
@@ -262,7 +290,7 @@ let animationId;
 let spawnTimeout;
 
 function animate(timestamp) {
-  if (!startTime) startTime = timestamp; // Initialize timer start
+  if (!startTime) startTime = timestamp;
   elapsedTime = (timestamp - startTime) / 1000;
 
   drawBackground();
@@ -270,46 +298,47 @@ function animate(timestamp) {
 
   movePaddle();
 
-  // Paddle bounce animation
   if (paddle.bounceVelocity > 0) {
     paddle.bounceScale = 1 + paddle.bounceVelocity;
     paddle.bounceVelocity -= 0.012;
-    if (paddle.bounceVelocity < 0) {
-      paddle.bounceVelocity = 0;
-      paddle.bounceScale = 1;
-    }
+  } else {
+    paddle.bounceScale = 1;
   }
 
   drawPaddle();
   updateSquares();
   drawSquares();
 
-  // Draw score and timer (swapped)
+  // Draw UI Text
+  const fontSize = gameCanvas.width / 25;
   ctx.fillStyle = '#ff44cc';
-  ctx.font = 'bold 20px monospace';
+  ctx.font = `bold ${fontSize}px monospace`;
   ctx.shadowColor = '#cc33cc';
   ctx.shadowBlur = 6;
   ctx.textAlign = 'right';
-  ctx.fillText(`Score: ${score}`, gameCanvas.width - 12, 26);
+  ctx.fillText(`Score: ${score}`, gameCanvas.width - 12, fontSize + 5);
 
   ctx.textAlign = 'left';
-  ctx.fillText(`Time: ${formatTime(elapsedTime)}`, 12, 26);
+  ctx.fillText(`Time: ${formatTime(elapsedTime)}`, 12, fontSize + 5);
 
-  // Draw Level in blue at top center with Consolas font
   const level = Math.floor(score / 50) + 1;
-  ctx.fillStyle = '#3399ff';  // blue color
-  ctx.font = 'bold 28px Consolas, monospace';
+  const levelFontSize = gameCanvas.width / 18;
+  ctx.fillStyle = '#3399ff';
+  ctx.font = `bold ${levelFontSize}px Consolas, monospace`;
   ctx.textAlign = 'center';
   ctx.shadowColor = '#3366cc';
   ctx.shadowBlur = 8;
-  ctx.fillText(`Level: ${level}`, gameCanvas.width / 2, 40);
+  ctx.fillText(`Level: ${level}`, gameCanvas.width / 2, levelFontSize + 10);
 
   animationId = requestAnimationFrame(animate);
 }
 
 function spawnSquares() {
   createSquare();
-  spawnTimeout = setTimeout(spawnSquares, 900 + Math.random() * 600);
+  // Speed up spawn rate as level increases
+  const baseInterval = 1500;
+  const spawnInterval = Math.max(400, baseInterval - (currentMilestone * 150));
+  spawnTimeout = setTimeout(spawnSquares, spawnInterval);
 }
 
 // --- Game Control Functions ---
@@ -317,60 +346,56 @@ function stopGame() {
   clearTimeout(spawnTimeout);
   cancelAnimationFrame(animationId);
   backgroundRunning = false;
-
-  // Stop the music
   bgMusic.pause();
   bgMusic.currentTime = 0;
 }
 
 function endGame() {
   stopGame();
-
-  // Play game over sound
   gameOverSound.play();
-
   finalScoreText.textContent = score;
   gameOverContainer.style.display = 'block';
 }
 
+// CHANGED: restartGame now handles all resizing and setup
 function restartGame() {
-  // Play click sound
   clickSound.currentTime = 0;
   clickSound.play();
+  bgMusic.play().catch(() => {});
 
-  // Start background music
-  bgMusic.play().catch(error => {
-    console.log("Browser prevented audio from playing automatically. It will start after the first user interaction.");
-  });
-  
+  // --- Responsive Setup ---
+  // Match canvas internal resolution to its display size
+  const rect = gameCanvas.getBoundingClientRect();
+  gameCanvas.width = rect.width;
+  gameCanvas.height = rect.height;
+
+  // --- Reset Game State ---
   score = 0;
   missed = 0;
-  squareSpeed = 4;
   currentMilestone = 0;
   squares = [];
+  
+  // Make game values responsive
+  paddle.width = gameCanvas.width * 0.22;
+  paddle.height = 20;
+  paddle.maxSpeed = gameCanvas.width / 50;
+  squareSpeed = gameCanvas.height / 200;
 
-  // Fully reset paddle
   paddle.x = gameCanvas.width / 2 - paddle.width / 2;
+  paddle.y = gameCanvas.height - paddle.height * 2.5; // Position near bottom
   paddle.speed = 0;
   paddle.movingLeft = false;
   paddle.movingRight = false;
   paddle.bounceVelocity = 0;
   paddle.bounceScale = 1;
 
-  // Clear keys (force blur to reset key states)
-  window.blur();
+  window.blur(); // Unfocus to prevent sticky keys
 
-  // Reset timer
   startTime = null;
   elapsedTime = 0;
 
-  // Hide Game Over screen
   gameOverContainer.style.display = 'none';
-
-  // Background animation
   backgroundRunning = true;
-
-  // Cancel any running animation frame or timeout
   cancelAnimationFrame(animationId);
   clearTimeout(spawnTimeout);
 
@@ -378,8 +403,11 @@ function restartGame() {
   animate();
 }
 
+// --- Event Listeners ---
 restartBtn.addEventListener('click', restartGame);
+// NEW: Add resize listener to restart game (most stable way to handle resize)
+window.addEventListener('resize', restartGame);
 
 // --- Start Game ---
-spawnSquares();
-animate();
+// Initial game start is now handled by restartGame to ensure proper sizing
+restartGame();
